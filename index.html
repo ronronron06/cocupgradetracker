@@ -182,6 +182,14 @@ details{min-width:0;max-width:100%}
 .iabfig svg{width:100%;height:auto;display:block;border-radius:10px}
 .iabo{margin:6px 0 4px;padding-left:20px;font-size:13px}
 .iabo li{margin:3px 0}
+
+/* confirm modal */
+.md .ck.warn{background:var(--bad);color:#fff}
+:root[data-theme="dark"] .md .ck.warn{color:#2b0a08}
+.md .mbt{display:flex;gap:8px;margin-top:14px}
+.md .mbt button{margin-top:0;flex:1 1 0;width:auto}
+.md .danger{background:var(--bad);border-color:var(--bad);color:#fff;font-weight:700}
+:root[data-theme="dark"] .md .danger{color:#2b0a08}
 </style>
 </head>
 <body>
@@ -374,17 +382,19 @@ function card(a,ix){
   };
   f.appendChild(sel);f.appendChild(lb);f.appendChild(du);f.appendChild(ad);
   d2.appendChild(f);d2.appendChild(m2);c.appendChild(d2);
-  var cl=el("button","x","Clear this account"),armed=false;cl.type="button";
+  var cl=el("button","x","Clear this account");cl.type="button";
   cl.onclick=function(){
-    if(!armed){armed=true;cl.textContent="Tap again to clear";setTimeout(function(){armed=false;cl.textContent="Clear this account";},4000);return;}
-    a.items=[];a.hp=[];a.tag="";a.imp=0;a.bst={b:0,l:0,p:0};save();sig=null;tick();
+    confirmModal("Clear "+a.name+"?","This removes all timers saved for this account. You can import it again later.","Yes, clear",function(){
+      a.items=[];a.hp=[];a.tag="";a.imp=0;a.bst={b:0,l:0,p:0};save();sig=null;tick();
+    });
   };
   c.appendChild(cl);
   if(S.a.length>1){
-    var rm=el("button","x","Remove account"),rarm=false;rm.type="button";
+    var rm=el("button","x","Remove account");rm.type="button";
     rm.onclick=function(){
-      if(!rarm){rarm=true;rm.textContent="Tap again to remove";setTimeout(function(){rarm=false;rm.textContent="Remove account";},4000);return;}
-      S.a=S.a.filter(function(z){return z!==a;});save();sig=null;tick();
+      confirmModal("Remove "+a.name+"?","This deletes the account and all of its timers from this tracker.","Yes, remove",function(){
+        S.a=S.a.filter(function(z){return z!==a;});save();sig=null;tick();
+      });
     };
     c.appendChild(rm);
   }
@@ -412,6 +422,25 @@ function showModal(a,r){
   mo.onclick=function(e){if(e.target===mo)close();};
   document.addEventListener("keydown",key);
   md.appendChild(cb);mo.appendChild(md);document.body.appendChild(mo);cb.focus();
+}
+function confirmModal(title,text,yes,onYes){
+  var old=document.getElementById("cfmmodal");if(old)old.remove();
+  var prev=document.activeElement;
+  var mo=el("div","mo");mo.id="cfmmodal";
+  var md=el("div","md");md.setAttribute("role","alertdialog");md.setAttribute("aria-modal","true");md.setAttribute("aria-labelledby","cfmttl");md.setAttribute("aria-describedby","cfmtxt");
+  md.appendChild(el("div","ck warn","!"));
+  var h=el("h3",null,title);h.id="cfmttl";md.appendChild(h);
+  var p=el("p",null,text);p.id="cfmtxt";md.appendChild(p);
+  var bt=el("div","mbt");
+  var no=el("button",null,"Cancel");no.type="button";
+  var ok=el("button","danger",yes);ok.type="button";
+  function close(){document.removeEventListener("keydown",key);mo.remove();if(prev&&prev.focus&&document.body.contains(prev))prev.focus();}
+  function key(e){if(e.key==="Escape")close();}
+  no.onclick=close;
+  ok.onclick=function(){close();onYes();};
+  mo.onclick=function(e){if(e.target===mo)close();};
+  document.addEventListener("keydown",key);
+  bt.appendChild(no);bt.appendChild(ok);md.appendChild(bt);mo.appendChild(md);document.body.appendChild(mo);no.focus();
 }
 function finish(i,r){
   save();flash=null;sig=null;tick();
