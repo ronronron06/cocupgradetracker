@@ -673,7 +673,7 @@ var slotEl=null,hnEl=null;
 function toolsPanel(){
   var c=el("section","card");c.style.setProperty("--ac","var(--line)");
   var bar=el("div","bar");
-  var pb=el("button","btn bigal","\uD83D\uDCCB Paste & import");pb.type="button";
+  var pb=el("button","btn bigal","\uD83D\uDCE5 Paste & import");pb.type="button";
   pb.setAttribute("aria-label","Paste the copied village export and import it");
   slotEl=el("div","slot");
   bar.appendChild(pb);bar.appendChild(slotEl);c.appendChild(bar);
@@ -845,8 +845,8 @@ function render(){
   hd.appendChild(tb);app.appendChild(hd);applyTheme();
   if(flash)app.appendChild(el("div","flash",flash));
   if(inAppBrowser()&&!iabOff)app.appendChild(iabBanner());
-  app.appendChild(toolsPanel());
   app.appendChild(guide(false));
+  app.appendChild(toolsPanel());
   var sm=el("section","card");sm.id="sum";app.appendChild(sm);
   S.a.forEach(function(a,i){app.appendChild(card(a,i));});
   if(S.a.length<MAXA){
