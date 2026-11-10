@@ -211,6 +211,9 @@ details{min-width:0;max-width:100%}
 .sr .ico{width:26px;height:26px}
 .ico.em{display:inline-block;text-align:center;font-size:17px;line-height:22px}
 .sr .ico.em{line-height:26px;font-size:20px}
+.gsteps{margin:6px 0 0;padding-left:20px;font-size:13px}
+.gsteps li{margin:7px 0}
+.gimg{display:block;max-width:100%;max-height:260px;margin:6px 0 2px;border-radius:8px;border:1px solid var(--line)}
 </style>
 </head>
 <body>
@@ -641,6 +644,31 @@ function iabBanner(){
   c.appendChild(d);
   return c;
 }
+var guideOpen=null;
+function guide(def){
+  var c=el("section","card");c.style.setProperty("--ac","var(--acc)");
+  var d=el("details");d.open=guideOpen===null?def:guideOpen;
+  d.addEventListener("toggle",function(){guideOpen=d.open;});
+  d.appendChild(el("summary",null,"How to use"));
+  var ol=el("ol","gsteps");
+  [
+    ["In Clash of Clans, open Settings and go to More Settings.","guide-1.png"],
+    ["Under Data Export, tap Copy (\u201CExport village data in JSON format\u201D).","guide-2.png"],
+    ["Open this page in Chrome or Safari. Avoid in-app browsers like Facebook Messenger, as they may not work.",""],
+    ["Tap Paste & import. Your account name, Town Hall, and upgrade timers will sync.","guide-4.png"],
+    ["Tap \u23F0 beside an upgrade to set a reminder. On Android, upgrades finishing within 24 hours open your Clock alarm; others open Google Calendar. Set all adds every upcoming upgrade to your calendar.",""],
+    ["To update, copy a new export and import again. It does not auto-sync because of Supercell\u2019s limits.",""]
+  ].forEach(function(st){
+    var li=el("li",null,st[0]);
+    if(st[1]){
+      var im=document.createElement("img");im.className="gimg";im.alt="";im.loading="lazy";
+      im.onerror=function(){im.remove();};im.src="/img/guide/"+st[1];li.appendChild(im);
+    }
+    ol.appendChild(li);
+  });
+  d.appendChild(ol);c.appendChild(d);
+  return c;
+}
 var slotEl=null,hnEl=null;
 function toolsPanel(){
   var c=el("section","card");c.style.setProperty("--ac","var(--line)");
@@ -818,11 +846,7 @@ function render(){
   if(flash)app.appendChild(el("div","flash",flash));
   if(inAppBrowser()&&!iabOff)app.appendChild(iabBanner());
   app.appendChild(toolsPanel());
-  if(!S.a.some(function(a){return a.imp;})){
-    var hc=el("section","card hint");hc.style.setProperty("--ac","var(--acc)");
-    hc.appendChild(el("div",null,"How to start: in Clash of Clans open the settings, tap Data Export and copy it. Come back here and tap Paste & import. Each village is matched by its player tag, and a new village becomes a new account."));
-    app.appendChild(hc);
-  }
+  app.appendChild(guide(!S.a.some(function(a){return a.imp;})));
   var sm=el("section","card");sm.id="sum";app.appendChild(sm);
   S.a.forEach(function(a,i){app.appendChild(card(a,i));});
   if(S.a.length<MAXA){
@@ -835,7 +859,6 @@ function render(){
   var dv=el("p","dev");dv.appendChild(document.createTextNode("Developed by "));
   var lk=el("a",null,"RR Design");lk.href="https://rrdesign.pages.dev/";lk.target="_blank";lk.rel="noopener noreferrer";
   dv.appendChild(lk);ft.appendChild(dv);
-  var cr=el("p");cr.appendChild(document.createTextNode("Game icons by "));var ca=el("a",null,"ClashKing Assets");ca.href="https://github.com/ClashKingInc/ClashKingAssets";ca.target="_blank";ca.rel="noopener noreferrer";cr.appendChild(ca);ft.appendChild(cr);
   ft.appendChild(el("p","nb","No ads. Timers are saved only in this browser. Only your public player tag is sent to look up your profile."));
   app.appendChild(ft);
   paint(Date.now());
