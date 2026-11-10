@@ -190,6 +190,19 @@ details{min-width:0;max-width:100%}
 .md .mbt button{margin-top:0;flex:1 1 0;width:auto}
 .md .danger{background:var(--bad);border-color:var(--bad);color:#fff;font-weight:700}
 :root[data-theme="dark"] .md .danger{color:#2b0a08}
+.prof{display:flex;gap:8px;align-items:center;margin:4px 0 6px}
+.thw{position:relative;display:inline-flex;flex:none;align-items:center;justify-content:center}
+.thw img{position:absolute;inset:0;width:100%;height:100%;object-fit:contain}
+.thfb{width:100%;height:100%;display:flex;align-items:center;justify-content:center;border-radius:8px;background:linear-gradient(#ffd54a,#f59e0b);color:#3b1d02;font-weight:800;font-size:11px;border:1px solid #92400e}
+.pinfo{min-width:0;flex:1}
+.pl1,.pl2{display:flex;flex-wrap:wrap;gap:2px 8px;align-items:center}
+.pl1{font-size:12px}
+.pl2{font-size:11px;color:var(--mut);margin-top:2px}
+.pl2 img{width:18px;height:18px;object-fit:contain}
+.hs{display:flex;flex-wrap:wrap;gap:4px;margin-top:3px}
+.hs span{font-size:10.5px;border:1px solid var(--line);border-radius:8px;padding:0 5px}
+.hs span.mx{color:var(--acc);border-color:var(--acc);font-weight:700}
+.top .thw{margin-right:-2px}
 </style>
 </head>
 <body>
@@ -208,6 +221,22 @@ var MAXA=20;
 function ink(h){var r=parseInt(h.substr(1,2),16),g=parseInt(h.substr(3,2),16),b=parseInt(h.substr(5,2),16);return (r*299+g*587+b*114)/1000>150?"#111":"#fff";}
 function pill(t,ix){var k=ix%COL.length,s=el("span","pill",t);s.style.setProperty("--ac",COL[k]);s.style.setProperty("--pt",ink(COL[k]));return s;}
 
+var TH_URL=function(l){return "/img/th/th"+l+".png";};
+var HA={"Barbarian King":"BK","Archer Queen":"AQ","Grand Warden":"GW","Royal Champion":"RC","Minion Prince":"MP","Dragon Duke":"DD"};
+function okUrl(u){return typeof u==="string"&&/^https:\/\//.test(u)?u:"";}
+function cleanApi(p){
+  p=p||{};
+  function n(v){return Number.isFinite(v)?v:0;}
+  return {
+    name:String(p.name||"").slice(0,30),
+    th:n(p.th),thw:n(p.thw),xp:n(p.xp),tr:n(p.tr),btr:n(p.btr),ws:n(p.ws),
+    role:String(p.role||"").slice(0,20),
+    clan:p.clan?{n:String(p.clan.n||"").slice(0,30),b:okUrl(p.clan.b)}:null,
+    lg:okUrl(p.lg),lgn:String(p.lgn||"").slice(0,30),
+    heroes:(Array.isArray(p.heroes)?p.heroes:[]).slice(0,10).map(function(h){return {n:String(h.n||"").slice(0,30),l:n(h.l),m:n(h.m)};}),
+    at:n(p.at)
+  };
+}
 function clean(a){
   a=a||{};
   return {
@@ -216,12 +245,64 @@ function clean(a){
     b:Math.min(8,Math.max(1,parseInt(a.b,10)||5)),
     imp:Number(a.imp)||0,
     col:!!a.col,
+    api:(a.api&&typeof a.api==="object")?cleanApi(a.api):null,
     bst:{b:Number(a.bst&&a.bst.b)||0,l:Number(a.bst&&a.bst.l)||0,p:Number(a.bst&&a.bst.p)||0},
     items:(Array.isArray(a.items)?a.items:[]).slice(0,60).map(function(i){
       return {k:KN[i.k]?i.k:"b",n:String(i.n||"?").slice(0,40),lvl:Number.isFinite(i.lvl)?i.lvl:null,end:Number(i.end)||0,h:!!i.h,x:!!i.x};
     }),
     hp:(Array.isArray(a.hp)?a.hp:[]).slice(0,4).map(function(h){return {n:String(h.n||"Helper").slice(0,30),end:Number(h.end)||0};})
   };
+}
+function thImg(lv,sz){
+  var w=el("span","thw"),fb=el("span","thfb","TH"+lv);
+  w.style.width=w.style.height=sz+"px";
+  if(sz<40)fb.style.fontSize="9px";
+  w.appendChild(fb);
+  var im=document.createElement("img");im.alt="Town Hall "+lv;im.decoding="async";
+  im.onload=function(){if(fb.parentNode)fb.remove();};
+  im.onerror=function(){im.remove();};
+  im.src=TH_URL(lv);w.appendChild(im);
+  return w;
+}
+function small(u,alt){var i=document.createElement("img");i.alt=alt||"";i.referrerPolicy="no-referrer";i.onerror=function(){i.remove();};i.src=u;return i;}
+function profile(a){
+  var p=a.api,w=el("div","prof");
+  w.appendChild(thImg(p.th,52));
+  var info=el("div","pinfo"),l1=el("div","pl1");
+  l1.appendChild(el("b",null,"TH"+p.th+(p.thw?" \u2694"+p.thw:"")));
+  l1.appendChild(el("span",null,"XP "+p.xp));
+  l1.appendChild(el("span",null,"\uD83C\uDFC6 "+p.tr.toLocaleString()));
+  if(p.ws)l1.appendChild(el("span",null,"\u2B50 "+p.ws.toLocaleString()));
+  info.appendChild(l1);
+  var l2=el("div","pl2");
+  if(p.lg)l2.appendChild(small(p.lg,p.lgn));
+  if(p.clan&&p.clan.n){
+    if(p.clan.b)l2.appendChild(small(p.clan.b,"Clan badge"));
+    l2.appendChild(el("span",null,p.clan.n+(p.role?" \u00B7 "+p.role:"")));
+  }else l2.appendChild(el("span",null,"No clan"));
+  info.appendChild(l2);
+  if(p.heroes.length){
+    var hs=el("div","hs");
+    p.heroes.forEach(function(h){hs.appendChild(el("span",h.m&&h.l>=h.m?"mx":null,(HA[h.n]||h.n)+" "+h.l));});
+    info.appendChild(hs);
+  }
+  w.appendChild(info);
+  return w;
+}
+function syncApi(a,done){
+  if(!a.tag){if(done)done("no player tag");return;}
+  var ctl=("AbortController" in window)?new AbortController():null,to=setTimeout(function(){if(ctl)ctl.abort();},12000);
+  fetch("/api/player?tag="+encodeURIComponent(a.tag),ctl?{signal:ctl.signal}:{})
+    .then(function(r){return r.json().catch(function(){return {error:"bad response (is /api/player deployed?)"};}).then(function(j){return {ok:r.ok,j:j};});})
+    .then(function(x){
+      clearTimeout(to);
+      if(!x.ok||!x.j||x.j.error)throw new Error((x.j&&x.j.error)||"API error");
+      var p=cleanApi(x.j);p.at=Date.now();a.api=p;
+      if(p.name)a.name=p.name.slice(0,30);
+      save();sig=null;tick();
+      if(done)done(null);
+    })
+    .catch(function(e){clearTimeout(to);if(done)done(e&&e.name==="AbortError"?"timeout":(e&&e.message)||"failed");});
 }
 function load(){
   try{
@@ -311,6 +392,7 @@ function card(a,ix){
   tgb.setAttribute("aria-expanded",a.col?"false":"true");tgb.setAttribute("aria-label","Expand or collapse account");
   tgb.onclick=function(){a.col=!a.col;save();sig=null;tick();};
   top.appendChild(tgb);
+  if(a.api&&a.api.th)top.appendChild(thImg(a.api.th,34));
   nm.value=a.name;nm.maxLength=30;nm.setAttribute("aria-label","Account name");
   nm.onchange=function(){a.name=nm.value.trim().slice(0,30)||"Account";save();paint(Date.now());};
   top.appendChild(nm);
@@ -321,6 +403,7 @@ function card(a,ix){
   if(a.col){
     var mn=el("div","mini"),lf=el("span"),tx=[];
     var n0=a.items.filter(function(i){return i.end>now;}).sort(function(x,y){return x.end-y.end;})[0];
+    if(a.api&&a.api.th)lf.appendChild(el("span",null,"TH"+a.api.th+" "));
     if(a.tag)lf.appendChild(el("span",null,a.tag+" "));
     if(st.bIdle)tx.push(st.bIdle+" idle");
     if(st.lIdle)tx.push("lab idle");
@@ -334,7 +417,19 @@ function card(a,ix){
   var meta=el("div","meta");
   if(a.tag)meta.appendChild(el("span",null,a.tag));
   meta.appendChild(el("span",null,a.imp?"Exported "+ago(now-a.imp)+" ago":"No import yet"));
+  if(a.api&&a.api.at)meta.appendChild(el("span",null,"Synced "+ago(now-a.api.at)+" ago"));
+  if(a.tag){
+    var sb=el("button","x","\u21BB Sync");sb.type="button";sb.setAttribute("aria-label","Sync profile from Clash of Clans API");
+    sb.onclick=function(){
+      sb.disabled=true;sb.textContent="Syncing...";
+      syncApi(a,function(e){
+        if(e){sb.disabled=false;sb.textContent="\u21BB Sync";flash="Sync failed: "+e;sig=null;tick();setTimeout(function(){flash=null;sig=null;tick();},5000);}
+      });
+    };
+    meta.appendChild(sb);
+  }
   c.appendChild(meta);
+  if(a.api&&a.api.th)c.appendChild(profile(a));
 
   var list=el("div");
   for(var n=0;n<st.bIdle;n++)list.appendChild(idleRow("Builder idle"));
@@ -412,7 +507,8 @@ function showModal(a,r){
   var md=el("div","md");md.setAttribute("role","dialog");md.setAttribute("aria-modal","true");md.setAttribute("aria-labelledby","impttl");
   md.appendChild(el("div","ck","\u2713"));
   var h=el("h3",null,"Import successful");h.id="impttl";md.appendChild(h);
-  md.appendChild(el("p","main",a.name+(r.tag?" ("+r.tag+")":"")));
+  var mp=el("p","main",a.name+(r.tag?" ("+r.tag+")":""));md.appendChild(mp);
+  var sp=el("p",null,r.tag?"Syncing profile...":"");if(r.tag)md.appendChild(sp);
   var n=r.items.length;
   md.appendChild(el("p",null,n?n+(n===1?" running upgrade":" running upgrades")+" loaded.":"No running upgrades found in this export."));
   var cb=el("button","btn","Close");cb.type="button";
@@ -422,6 +518,7 @@ function showModal(a,r){
   mo.onclick=function(e){if(e.target===mo)close();};
   document.addEventListener("keydown",key);
   md.appendChild(cb);mo.appendChild(md);document.body.appendChild(mo);cb.focus();
+  return {main:mp,sync:sp};
 }
 function confirmModal(title,text,yes,onYes){
   var old=document.getElementById("cfmmodal");if(old)old.remove();
@@ -444,7 +541,12 @@ function confirmModal(title,text,yes,onYes){
 }
 function finish(i,r){
   save();flash=null;sig=null;tick();
-  showModal(S.a[i],r);
+  var a=S.a[i],m=showModal(a,r);
+  if(!a.tag)return;
+  syncApi(a,function(e){
+    m.main.textContent=a.name+" ("+a.tag+")";
+    m.sync.textContent=e?"Profile sync failed: "+e:"Profile synced: "+(a.api&&a.api.th?"TH"+a.api.th:"OK");
+  });
 }
 var IABSVG='<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 300 200" role="img" aria-label="Illustration: tap the three dots at the top right, then choose Open in Chrome"><rect x="20" y="4" width="260" height="192" rx="16" fill="#e2e8f0" stroke="#475569" stroke-width="3"/><path d="M20 20a16 16 0 0 1 16-16H264a16 16 0 0 1 16 16V42H20Z" fill="#1e293b"/><text x="34" y="29" font-family="system-ui,sans-serif" font-size="15" font-weight="700" fill="#fff">✕</text><rect x="62" y="14" width="140" height="16" rx="8" fill="#334155"/><text x="132" y="26" text-anchor="middle" font-family="system-ui,sans-serif" font-size="10" fill="#cbd5e1">your-tracker-link</text><circle cx="262" cy="17" r="2.6" fill="#fff"/><circle cx="262" cy="23" r="2.6" fill="#fff"/><circle cx="262" cy="29" r="2.6" fill="#fff"/><circle cx="262" cy="23" r="15" fill="none" stroke="#f59e0b" stroke-width="3"/><circle cx="238" cy="12" r="9" fill="#f59e0b"/><text x="238" y="16" text-anchor="middle" font-family="system-ui,sans-serif" font-size="12" font-weight="800" fill="#1f1300">1</text><rect x="36" y="58" width="80" height="10" rx="5" fill="#cbd5e1"/><rect x="36" y="76" width="64" height="10" rx="5" fill="#cbd5e1"/><rect x="36" y="94" width="90" height="10" rx="5" fill="#cbd5e1"/><rect x="36" y="112" width="56" height="10" rx="5" fill="#cbd5e1"/><rect x="132" y="46" width="140" height="124" rx="10" fill="#fff" stroke="#94a3b8" stroke-width="1.5"/><text x="146" y="70" font-family="system-ui,sans-serif" font-size="13" fill="#1e293b">Refresh</text><text x="146" y="96" font-family="system-ui,sans-serif" font-size="13" fill="#1e293b">Copy link</text><rect x="138" y="106" width="128" height="30" rx="7" fill="#fde68a" stroke="#f59e0b" stroke-width="2"/><text x="146" y="126" font-family="system-ui,sans-serif" font-size="13" font-weight="800" fill="#1f1300">Open in Chrome</text><text x="146" y="156" font-family="system-ui,sans-serif" font-size="13" fill="#1e293b">Share</text><circle cx="132" cy="121" r="10" fill="#f59e0b"/><text x="132" y="125.5" text-anchor="middle" font-family="system-ui,sans-serif" font-size="12" font-weight="800" fill="#1f1300">2</text></svg>';
 var iabOff=false;
@@ -648,7 +750,7 @@ function render(){
   var hd=el("header","hd"),br=el("div","brand"),eb=el("div","emb"),tx=el("div");
   eb.setAttribute("aria-hidden","true");
   var tpl=document.createElement("template");tpl.innerHTML=EMBLEM;eb.appendChild(tpl.content);
-  tx.appendChild(el("h1",null,"CoC Upgrade Tracker"));tx.appendChild(el("div","sub","\uD83D\uDD12 100% Safe \u00B7 Browser-only \u00B7 No Ads"));
+  tx.appendChild(el("h1",null,"CoC Upgrade Tracker"));tx.appendChild(el("div","sub","\uD83D\uDD12 100% Safe \u00B7 Live CoC Sync \u00B7 No Ads"));
   br.appendChild(eb);br.appendChild(tx);hd.appendChild(br);
   var tb=el("button","ib");tb.id="themebtn";tb.type="button";tb.setAttribute("role","switch");
   var trk=el("span","trk");trk.appendChild(el("span","dm","\uD83C\uDF19"));trk.appendChild(el("span","dm","\u2600\uFE0F"));trk.appendChild(el("span","knob"));
@@ -678,7 +780,7 @@ function render(){
   var dv=el("p","dev");dv.appendChild(document.createTextNode("Developed by "));
   var lk=el("a",null,"RR Design");lk.href="https://rrdesign.pages.dev/";lk.target="_blank";lk.rel="noopener noreferrer";
   dv.appendChild(lk);ft.appendChild(dv);
-  ft.appendChild(el("p","nb","No server, no ads. Your data is saved only in this browser and never leaves your device."));
+  ft.appendChild(el("p","nb","No ads. Timers are saved only in this browser. Only your public player tag is sent to look up your profile."));
   app.appendChild(ft);
   paint(Date.now());
 }
@@ -691,6 +793,7 @@ function tick(){
 applyTheme();
 tick();
 setInterval(tick,1000);
+S.a.forEach(function(a,k){if(a.tag&&(!a.api||Date.now()-a.api.at>6e5))setTimeout(function(){syncApi(a);},500+k*600);});
 document.addEventListener("visibilitychange",function(){if(!document.hidden)tick();});
 })();
 </script>
