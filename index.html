@@ -846,7 +846,7 @@ function render(){
   if(flash)app.appendChild(el("div","flash",flash));
   if(inAppBrowser()&&!iabOff)app.appendChild(iabBanner());
   app.appendChild(toolsPanel());
-  app.appendChild(guide(!S.a.some(function(a){return a.imp;})));
+  app.appendChild(guide(false));
   var sm=el("section","card");sm.id="sum";app.appendChild(sm);
   S.a.forEach(function(a,i){app.appendChild(card(a,i));});
   if(S.a.length<MAXA){
